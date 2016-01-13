@@ -118,20 +118,21 @@ fun KotlinType.computeNewSubstitution(
 }
 
 fun KotlinType.replace(
-        newArguments: List<TypeProjection>,
-        annotations: Annotations = this@replace.annotations
+        newArguments: List<TypeProjection> = this.arguments,
+        newAnnotations: Annotations = this.annotations,
+        newTypeCapabilities: TypeCapabilities = this.capabilities
 ): KotlinType {
-    if (newArguments.isEmpty() && annotations === this.annotations) return this
+    if (newArguments.isEmpty() && newAnnotations === this.annotations && newTypeCapabilities === capabilities) return this
 
     if (newArguments.isEmpty()) {
         return KotlinTypeImpl.create(
-                annotations,
+                newAnnotations,
                 constructor,
                 isMarkedNullable,
                 arguments,
                 substitution,
                 memberScope,
-                capabilities
+                newTypeCapabilities
         )
     }
 
@@ -144,13 +145,13 @@ fun KotlinType.replace(
             else ErrorUtils.createErrorScope("Unexpected declaration descriptor for type constructor: $constructor")
 
     return KotlinTypeImpl.create(
-            annotations,
+            newAnnotations,
             constructor,
             isMarkedNullable,
             newArguments,
             newSubstitution,
             newScope,
-            capabilities
+            newTypeCapabilities
     )
 }
 

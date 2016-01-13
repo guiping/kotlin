@@ -66,6 +66,11 @@ public class IdeErrorMessages {
         MAP.put(TYPE_MISMATCH, "<html>Type mismatch.<table><tr><td>Required:</td><td>{0}</td></tr><tr><td>Found:</td><td>{1}</td></tr></table></html>",
                 HTML_RENDER_TYPE, HTML_RENDER_TYPE);
 
+        MAP.put(TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS,
+                "<html>Type mismatch.<table><tr><td>Required:</td><td>{0}</td></tr><tr><td>Found:</td><td>{1}</td></tr></table><br />\n" +
+                "Projected type {2} restricts use of <br />\n{3}\n</html>",
+                HTML_RENDER_TYPE, HTML_RENDER_TYPE, HTML_RENDER_TYPE, DescriptorRenderer.HTML);
+
         MAP.put(ASSIGN_OPERATOR_AMBIGUITY, "<html>Assignment operators ambiguity. All these functions match.<ul>{0}</ul></table></html>",
                 HTML_AMBIGUOUS_CALLS);
 

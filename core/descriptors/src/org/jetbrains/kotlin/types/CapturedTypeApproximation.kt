@@ -23,7 +23,8 @@ import org.jetbrains.kotlin.resolve.calls.inference.isCaptured
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
-import org.jetbrains.kotlin.types.typeUtil.builtIns
+import org.jetbrains.kotlin.types.typeUtil.*
+import org.jetbrains.kotlin.utils.addToStdlib.check
 import java.util.*
 
 data class ApproximationBounds<T>(
@@ -55,8 +56,8 @@ private fun TypeArgument.toTypeProjection(): TypeProjection {
 private fun TypeProjection.toTypeArgument(typeParameter: TypeParameterDescriptor) =
         when (TypeSubstitutor.combine(typeParameter.variance, this)) {
             Variance.INVARIANT -> TypeArgument(typeParameter, type, type)
-            Variance.IN_VARIANCE -> TypeArgument(typeParameter, type, typeParameter.builtIns.nullableAnyType)
-            Variance.OUT_VARIANCE -> TypeArgument(typeParameter, typeParameter.builtIns.nothingType, type)
+            Variance.IN_VARIANCE -> TypeArgument(typeParameter, type, type.nullableAnyForApproximation())
+            Variance.OUT_VARIANCE -> TypeArgument(typeParameter, type.nothingForApproximation(), type)
         }
 
 fun approximateCapturedTypesIfNecessary(typeProjection: TypeProjection?, approximateContravariant: Boolean): TypeProjection? {
@@ -112,8 +113,8 @@ fun approximateCapturedTypes(type: KotlinType): ApproximationBounds<KotlinType> 
         val bound = typeProjection.type.makeNullableIfNeeded()
 
         return when (typeProjection.projectionKind) {
-            Variance.IN_VARIANCE -> ApproximationBounds(bound, type.builtIns.nullableAnyType)
-            Variance.OUT_VARIANCE -> ApproximationBounds(type.builtIns.nothingType.makeNullableIfNeeded(), bound)
+            Variance.IN_VARIANCE -> ApproximationBounds(bound, type.nullableAnyForApproximation())
+            Variance.OUT_VARIANCE -> ApproximationBounds(type.nothingForApproximation().makeNullableIfNeeded(), bound)
             else -> throw AssertionError("Only nontrivial projections should have been captured, not: $typeProjection")
         }
     }
@@ -154,3 +155,24 @@ private fun approximateProjection(typeArgument: TypeArgument): ApproximationBoun
             lower = TypeArgument(typeArgument.typeParameter, inUpper, outLower),
             upper = TypeArgument(typeArgument.typeParameter, inLower, outUpper))
 }
+
+private fun KotlinType.nothingForApproximation() =
+        builtIns.nothingType.addApproximatedTypeCapability(this)
+
+private fun KotlinType.nullableAnyForApproximation() =
+        builtIns.nullableAnyType.addApproximatedTypeCapability(this)
+
+object ApproximatedTypeCapability : TypeCapability
+
+fun KotlinType.addApproximatedTypeCapability(type: KotlinType): KotlinType {
+    if (!type.isCaptured()) return this
+
+    return replace(
+            newTypeCapabilities = CompositeTypeCapabilities(SingletonTypeCapabilities(
+                    ApproximatedTypeCapability::class.java,
+                    ApproximatedTypeCapability
+            ), capabilities))
+}
+
+fun KotlinType.containsApproximatedCapturedTypeProjection(): Boolean =
+        TypeUtils.containsSpecialType(this) { it.getCapability<ApproximatedTypeCapability>() != null }

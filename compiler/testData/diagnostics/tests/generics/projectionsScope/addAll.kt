@@ -13,14 +13,14 @@ fun <T> mc(): MC<T> = null!!
 fun <T> c(): C<T> = null!!
 
 fun foo(x: MC<out Open>) {
-    x.addAll(<!TYPE_MISMATCH(C<kotlin.Nothing>; MC<out Open>)!>x<!>)
-    x.addAllMC(<!TYPE_MISMATCH(MC<kotlin.Nothing>; MC<out Open>)!>x<!>)
+    x.addAll(<!TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS(C<kotlin.Nothing>; MC<out Open>; MC<out Open>; public abstract fun addAll\(x: C<T>\): kotlin.Boolean defined in MC)!>x<!>)
+    x.addAllMC(<!TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS(MC<kotlin.Nothing>; MC<out Open>; MC<out Open>; public abstract fun addAllMC\(x: MC<out T>\): kotlin.Boolean defined in MC)!>x<!>)
 
-    x.addAll(<!TYPE_MISMATCH(C<kotlin.Nothing>; MC<Open>)!>mc<Open>()<!>)
-    x.addAllMC(<!TYPE_MISMATCH(MC<kotlin.Nothing>; MC<Open>)!>mc<Open>()<!>)
+    x.addAll(<!TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS(C<kotlin.Nothing>; MC<Open>; MC<out Open>; public abstract fun addAll\(x: C<T>\): kotlin.Boolean defined in MC)!>mc<Open>()<!>)
+    x.addAllMC(<!TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS(MC<kotlin.Nothing>; MC<Open>; MC<out Open>; public abstract fun addAllMC\(x: MC<out T>\): kotlin.Boolean defined in MC)!>mc<Open>()<!>)
 
-    x.addAll(<!TYPE_MISMATCH(C<kotlin.Nothing>; MC<Derived>)!>mc<Derived>()<!>)
-    x.addAllMC(<!TYPE_MISMATCH(MC<kotlin.Nothing>; MC<Derived>)!>mc<Derived>()<!>)
+    x.addAll(<!TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS(C<kotlin.Nothing>; MC<Derived>; MC<out Open>; public abstract fun addAll\(x: C<T>\): kotlin.Boolean defined in MC)!>mc<Derived>()<!>)
+    x.addAllMC(<!TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS(MC<kotlin.Nothing>; MC<Derived>; MC<out Open>; public abstract fun addAllMC\(x: MC<out T>\): kotlin.Boolean defined in MC)!>mc<Derived>()<!>)
 
     x.addAll(c())
     x.addAll(c<Nothing>())

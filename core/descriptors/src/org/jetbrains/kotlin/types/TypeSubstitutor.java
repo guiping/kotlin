@@ -228,7 +228,8 @@ public class TypeSubstitutor {
                 type.getConstructor().getParameters(), type.getArguments(), recursionDepth);
 
         KotlinType substitutedType =
-                TypeSubstitutionKt.replace(type, substitutedArguments, substitution.filterAnnotations(type.getAnnotations()));
+                TypeSubstitutionKt.replace(
+                        type, substitutedArguments, substitution.filterAnnotations(type.getAnnotations()), type.getCapabilities());
         return new TypeProjectionImpl(projectionKind, substitutedType);
     }
 

@@ -21,6 +21,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.descriptors.*;
+import org.jetbrains.kotlin.diagnostics.DiagnosticUtilsKt;
 import org.jetbrains.kotlin.lexer.KtToken;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.name.FqName;
@@ -83,10 +84,11 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
     public void wrongReceiverType(@NotNull BindingTrace trace, @NotNull ReceiverParameterDescriptor receiverParameter, @NotNull ReceiverValue receiverArgument) {
         if (receiverArgument instanceof ExpressionReceiver) {
             ExpressionReceiver expressionReceiver = (ExpressionReceiver)receiverArgument;
-            trace.report(TYPE_MISMATCH.on(expressionReceiver.getExpression(), receiverParameter.getType(), receiverArgument.getType()));
+            DiagnosticUtilsKt.reportTypeMismatch(
+                    trace, expressionReceiver.getExpression(), receiverParameter.getType(), receiverArgument.getType());
         }
         else {
-            trace.report(TYPE_MISMATCH.on(reference, receiverParameter.getType(), receiverArgument.getType()));
+            DiagnosticUtilsKt.reportTypeMismatch(trace, reference, receiverParameter.getType(), receiverArgument.getType());
         }
     }
 
@@ -212,7 +214,10 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
             assert substitutedReturnType != null; //todo
 
             assert !noExpectedType(data.expectedType) : "Expected type doesn't exist, but there is an expected type mismatch error";
-            trace.report(TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH.on(call.getCallElement(), data.expectedType, substitutedReturnType));
+            if (!DiagnosticUtilsKt.reportTypeMismatchDueToTypeProjection(
+                    trace, call.getCallElement(), data.expectedType, substitutedReturnType)) {
+                trace.report(TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH.on(call.getCallElement(), data.expectedType, substitutedReturnType));
+            }
         }
         else if (status.hasCannotCaptureTypesError()) {
             trace.report(TYPE_INFERENCE_CANNOT_CAPTURE_TYPES.on(reference, data));
