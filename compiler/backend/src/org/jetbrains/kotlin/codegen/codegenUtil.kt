@@ -20,9 +20,12 @@ package org.jetbrains.kotlin.codegen
 import org.jetbrains.kotlin.codegen.context.FieldOwnerContext
 import org.jetbrains.kotlin.codegen.intrinsics.TypeIntrinsics
 import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.MemberDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.load.java.BuiltinMethodsWithSpecialGenericSignature.SpecialSignatureInfo
 import org.jetbrains.kotlin.load.java.JvmAbi
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
@@ -125,4 +128,9 @@ fun populateCompanionBackingFieldNamesToOuterContextIfNeeded(companion: KtObject
         }
     }
 
+}
+
+fun MemberDescriptor.isInlineOnly(): Boolean {
+    if (this !is FunctionDescriptor) return false
+    return typeParameters.any { it.isReified } || annotations.hasAnnotation(FqName("kotlin.jvm.internal.InlineOnly"))
 }
